@@ -1,113 +1,159 @@
-import Image from 'next/image'
+"use client";
+import Image from "next/image";
+import { RiSendPlaneFill } from "react-icons/ri";
+import { AiOutlinePlus, AiOutlineDelete } from "react-icons/ai";
+
+import { useState } from "react";
+
+import Loading from "./components/Loading";
+
+interface Message {
+  role: string;
+  content: string;
+}
 
 export default function Home() {
+  const [userInput, setUserInput] = useState<string>("");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const userMessage: Message = {
+      role: "user",
+      content: userInput,
+    };
+
+    generateAnswer([...messages, userMessage]);
+
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
+    setUserInput("");
+  };
+
+  const generateAnswer = async (messages: Message[]) => {
+    setIsLoading(true);
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      body: JSON.stringify({ messages }),
+    });
+
+    const result = await response.json();
+
+    if (result.error) {
+      setIsLoading(false);
+      alert("Error: " + result.error);
+      return;
+    }
+
+    const botMessage: Message = {
+      role: "assistant",
+      content: result.choices[0].message.content,
+    };
+
+    const updatedMessages = [...messages, botMessage];
+    setMessages(updatedMessages);
+    setIsLoading(false);
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <main className="flex flex-row">
+      {/** Sidebar Section */}
+      <aside className="w-80 bg-[#111111] h-screen p-5 pt-8">
+        <div className="flex gap-x-4 items-center w-full">
+          <Image
+            src="/ai_bot.jpg"
+            className="w-8 h-8 rounded-md"
+            alt="bot"
+            width={200}
+            height={200}
+          />
+          <h1 className="text-white origin-left font-medium text-md">
+            AI Assistant
+          </h1>
+        </div>
+        <button className="p-2 rounded-md w-full bg-blue-600 text-sm mt-6 flex items-center justify-center hover:scale-105 duration-300">
+          <AiOutlinePlus className="mr-2" />
+          New Conversation
+        </button>
+
+        {/* List of conversations */}
+        <ul className="pt-6 w-full">
+          <li className="flex items-center justify-between mt-2 rounded-md p-3 cursor-pointer hover:bg-black text-gray-300 text-sm gap-x-4 overflow-hidden">
+            <div className="flex flex-col">
+              <p className="font-semibold text-md">Conversation's title #1</p>
+              <p className="text-xs text-gray-500">Last message's content</p>
+            </div>
+            <div className="hover:text-red-600">
+              <AiOutlineDelete className="w-4 h-4" />
+            </div>
+          </li>
+        </ul>
+      </aside>
+      {/** Chat Section */}
+      <div className="flex flex-grow max-w-2xl mx-auto h-screen">
+        <div className="flex flex-col w-full">
+          {/* Title */}
+          <h1 className="bg-gradient-to-r from-blue-50 to-purple-500 text-transparent bg-clip-text mt-6 py-3 font-semibold text-md px-5">
+            Conversation title #1
+          </h1>
+          {/* ChatMessage */}
+          <div className="flex-1 overflow-auto p-6">
+            {messages.map((message, index) => {
+              if (message.role === "user") {
+                return (
+                  <div className="flex items-top mb-4" key={index}>
+                    <img
+                      src="/me.jpg"
+                      className="w-10 h-10 rounded-md mr-4"
+                      alt=""
+                    />
+                    <div className="bg-blue-500 px-4 py-2 rounded-md text-white w-full max-x-2xl">
+                      <p>{message.content}</p>
+                    </div>
+                  </div>
+                );
+              } else if (message.role === "assistant") {
+                return (
+                  <div className="flex items-top mb-4" key={index}>
+                    <img
+                      src="/ai_bot.jpg"
+                      className="w-10 h-10 rounded-md mr-4"
+                      alt=""
+                    />
+                    <div className="px-4 py-2 rounded-md text-white w-full max-w-2xl">
+                      <p>{message.content}</p>
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })}
+
+            {isLoading && <Loading text="AI is typing" />}
+          </div>
+          {/* Chat Input */}
+          <div className="flex w-full mx-auto max-w-2xl p-6">
+            <form className="w-full" onSubmit={handleSubmit}>
+              <div className="flex rounded-lg border border-gray-600 bg-[#111111]">
+                <input
+                  type="text"
+                  className="flex-grow px-4 py-2 bg-transparent text-sm text-white focus:outline-none"
+                  placeholder="Type your message..."
+                  value={userInput}
+                  onChange={(e) => setUserInput(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className="bg-blue-600 rounded-lg m-2 px-4 py-2 text-white focus:outline-none"
+                >
+                  <RiSendPlaneFill />
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
     </main>
-  )
+  );
 }
