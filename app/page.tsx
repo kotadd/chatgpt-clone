@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import SyntaxHighlight from "./components/SyntaxHighlight";
 
 interface Message {
   role: string;
@@ -83,6 +84,9 @@ export default function Home() {
 
     newConversations.splice(conversations.length - 1 - selectedIndex, 1);
     setConversations(newConversations);
+    setConversationTitle(null);
+    setConversationId(null);
+    setMessages([]);
   };
 
   const generateAnswer = async (messages: Message[]) => {
@@ -288,6 +292,7 @@ export default function Home() {
                             <ReactMarkdown
                               children={message.content}
                               remarkPlugins={[remarkGfm]}
+                              components={SyntaxHighlight}
                             />
                           </div>
                         </div>
