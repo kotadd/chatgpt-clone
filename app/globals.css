@@ -25,3 +25,39 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+
+/* custom styles for markdown */
+table {
+  width: 100%;
+  border-collapace: collapse;
+  margin-top: 25px;
+  font-size: 1em;
+  min-width: 400px;
+  border-radius: 10px 10px 0 0;
+  overflow: hidden;
+}
+
+thead tr {
+  background-color: #202427;
+  color: #ffffff;
+  text-align: left;
+  font-weight: bold;
+}
+
+th,
+td {
+  padding: 12px 15px;
+}
+
+tbody tr {
+  border-bottom: 1px solid #202427;
+}
+
+tbody tr:last-of-type {
+  border-bottom: 4px solid #202427;
+}
+
+ol {
+  list-style-type: decimal;
+  margin-left: 20px;
+}

@@ -7,10 +7,13 @@ import {
   AiOutlineCheckCircle,
 } from "react-icons/ai";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import Loading from "./components/Loading";
 import { v4 as uuidv4 } from "uuid";
+
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface Message {
   role: string;
@@ -282,7 +285,10 @@ export default function Home() {
                             alt=""
                           />
                           <div className="px-4 py-2 rounded-md text-white w-full max-w-2xl">
-                            <p>{message.content}</p>
+                            <ReactMarkdown
+                              children={message.content}
+                              remarkPlugins={[remarkGfm]}
+                            />
                           </div>
                         </div>
                       );
