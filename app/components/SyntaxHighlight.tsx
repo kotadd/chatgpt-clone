@@ -17,7 +17,7 @@ import { useState } from "react";
 import { MdContentCopy, MdCheck } from "react-icons/md";
 
 const SyntaxHighlight: object = {
-  code({ inline, className, children, ...props }) {
+  code({ inline, className, children, ...props }: any) {
     const match = /language-(\w+)/.exec(className || "");
     const [copied, setCopied] = useState(false);
 
